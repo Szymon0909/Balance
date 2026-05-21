@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formularz rejestracyjny — Studio treningowe</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FAF6F0',
+            card: '#F5F0E8',
+            sand: '#D4BFA8',
+            accent: '#C19A6B',
+            brown: '#8C6A4F',
+            ink: '#3F2A1E',
+          },
+          fontFamily: {
+            display: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['Source Sans 3', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 10px 40px rgba(63, 42, 30, 0.07), 0 2px 10px rgba(63, 42, 30, 0.04)',
+            logo: '0 8px 28px rgba(140, 106, 79, 0.18)',
+            lift: '0 4px 14px rgba(193, 154, 107, 0.25)',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(12px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            modalIn: {
+              '0%': { opacity: '0', transform: 'scale(0.95)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            },
+          },
+          animation: {
+            fadeIn: 'fadeIn 0.55s ease-out forwards',
+            modalIn: 'modalIn 0.35s ease-out forwards',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    input[type="checkbox"],
+    input[type="radio"] {
+      accent-color: #C19A6B;
+    }
+    .field-error {
+      border-color: #b45309 !important;
+      box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.12);
+    }
+    .option-card:has(input:checked) {
+      border-color: #C19A6B;
+      background-color: #FAF6F0;
+      box-shadow: 0 2px 8px rgba(193, 154, 107, 0.15);
+    }
+    body.modal-open {
+      overflow: hidden;
+    }
+    #success-modal:not(.hidden) .modal-panel {
+      animation: modalIn 0.35s ease-out forwards;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-cream font-sans text-ink antialiased">
+
+  <div class="mx-auto max-w-3xl px-4 py-8 sm:py-12">
+
+    <!-- ========== HEADER ========== -->
+    <header class="mb-10 text-center opacity-0 animate-fadeIn" style="animation-fill-mode: forwards;">
+      <img
+        src="image0.png"
+        alt="Logo studia treningowego"
+        width="320"
+        height="140"
+        class="mx-auto block h-auto max-h-[140px] w-auto max-w-[320px] rounded-2xl object-contain shadow-logo transition-all duration-300 hover:scale-[1.01] hover:shadow-lift"
+        loading="eager"
+        decoding="async"
+      />
+
+      <h1 class="mt-8 font-display text-4xl font-semibold tracking-wide text-ink sm:text-5xl">Witaj</h1>
+      <p class="mx-auto mt-3 max-w-md text-base font-light leading-relaxed text-ink/65 sm:text-lg">
+        Wypełnij formularz, abyśmy mogli dopasować trening do Twoich potrzeb i celów.
+      </p>
+    </header>
+
+    <!-- Komunikat błędu (EmailJS / sieć) -->
+    <div
+      id="error-message"
+      class="mb-6 hidden rounded-2xl border border-amber-700/25 bg-amber-50/90 px-5 py-4 text-center text-sm text-amber-900 shadow-sm"
+      role="alert"
+    >
+      <i class="fa-solid fa-circle-exclamation mr-2" aria-hidden="true"></i>
+      <span id="error-message-text"></span>
+    </div>
+
+    <form id="registration-form" class="space-y-6" novalidate>
+
+      <!-- ========== CELE TRENINGOWE ========== -->
+      <section
+        class="rounded-2xl border border-sand/35 bg-card p-6 shadow-card sm:p-8 opacity-0 animate-fadeIn"
+        style="animation-delay: 0.1s; animation-fill-mode: forwards;"
+        aria-labelledby="section-goals"
+      >
+        <div class="mb-6 flex items-center gap-3 border-b border-sand/40 pb-4">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
+            <i class="fa-solid fa-bullseye" aria-hidden="true"></i>
+          </span>
+          <h2 id="section-goals" class="font-display text-2xl text-brown sm:text-3xl">Cele treningowe</h2>
+        </div>
+
+        <fieldset>
+          <legend class="mb-3 flex items-start gap-2 text-sm font-medium text-ink">
+            <span class="mt-0.5 text-accent"><i class="fa-regular fa-circle-check" aria-hidden="true"></i></span>
+            <span>1. Co jest Twoim głównym celem? <span class="font-normal text-ink/55">(możesz zaznaczyć kilka)</span></span>
+          </legend>
+          <div class="grid gap-2.5 sm:grid-cols-2" id="main-goals-group">
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="main_goals" value="Redukcja bólu" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Redukcja bólu</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="main_goals" value="Poprawa sylwetki" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Poprawa sylwetki</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="main_goals" value="Wzmocnienie ciała" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Wzmocnienie ciała</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="main_goals" value="Zwiększenie elastyczności" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Zwiększenie elastyczności</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="main_goals" value="Redukcja stresu" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Redukcja stresu</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="main_goals" value="Powrót do formy po przerwie" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Powrót do formy po przerwie</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm sm:col-span-2">
+              <input type="checkbox" name="main_goals" value="Inne" id="goal-other-checkbox" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Inne</span>
+            </label>
+          </div>
+          <div id="other-goal-wrapper" class="mt-4 hidden">
+            <label for="inne_text" class="mb-1.5 flex items-center gap-2 text-xs font-medium text-ink/70">
+              <i class="fa-solid fa-pen text-accent" aria-hidden="true"></i> Opisz swój cel:
+            </label>
+            <input
+              type="text"
+              id="inne_text"
+              name="inne_text"
+              placeholder="Wpisz swój cel..."
+              class="w-full rounded-xl border border-sand/50 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+          </div>
+          <p id="error-main-goals" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+        </fieldset>
+
+        <div class="mt-8">
+          <label for="goals_3months" class="mb-2 flex items-start gap-2 text-sm font-medium text-ink">
+            <span class="text-accent"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span>
+            <span>2. Jakie efekty chciałabyś/chciałbyś osiągnąć w ciągu najbliższych 3 miesięcy?</span>
+          </label>
+          <textarea
+            id="goals_3months"
+            name="goals_3months"
+            rows="4"
+            required
+            placeholder="Opisz swoje oczekiwane efekty..."
+            class="w-full resize-y rounded-xl border border-sand/50 bg-white px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+          ></textarea>
+          <p id="error-goals-3months" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+        </div>
+
+        <fieldset class="mt-8">
+          <legend class="mb-3 flex items-start gap-2 text-sm font-medium text-ink">
+            <span class="text-accent"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
+            <span>3. Co jest dla Ciebie najważniejsze w treningach?</span>
+          </legend>
+          <div class="grid gap-2.5 sm:grid-cols-2" id="priorities-group">
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="training_priorities" value="Bezpieczeństwo" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Bezpieczeństwo</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="training_priorities" value="Efektywność" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Efektywność</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="training_priorities" value="Relaks" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Relaks</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="checkbox" name="training_priorities" value="Wsparcie i motywacja" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Wsparcie i motywacja</span>
+            </label>
+            <label class="option-card flex cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm sm:col-span-2">
+              <input type="checkbox" name="training_priorities" value="Atmosfera" class="h-4 w-4 shrink-0" />
+              <span class="text-sm">Atmosfera</span>
+            </label>
+          </div>
+          <p id="error-priorities" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+        </fieldset>
+      </section>
+
+      <!-- ========== STYL ŻYCIA ========== -->
+      <section
+        class="rounded-2xl border border-sand/35 bg-card p-6 shadow-card sm:p-8 opacity-0 animate-fadeIn"
+        style="animation-delay: 0.2s; animation-fill-mode: forwards;"
+        aria-labelledby="section-lifestyle"
+      >
+        <div class="mb-6 flex items-center gap-3 border-b border-sand/40 pb-4">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
+            <i class="fa-solid fa-leaf" aria-hidden="true"></i>
+          </span>
+          <h2 id="section-lifestyle" class="font-display text-2xl text-brown sm:text-3xl">Styl życia</h2>
+        </div>
+
+        <fieldset class="mb-8">
+          <legend class="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+            <i class="fa-solid fa-chair text-accent" aria-hidden="true"></i>
+            1. Ile godzin dziennie spędzasz w pozycji siedzącej?
+          </legend>
+          <div class="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap" id="sitting-group">
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm sm:min-w-[140px]">
+              <input type="radio" name="sitting_hours" value="Mniej niż 4h" required class="h-4 w-4" />
+              <span class="text-sm">Mniej niż 4h</span>
+            </label>
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm sm:min-w-[100px]">
+              <input type="radio" name="sitting_hours" value="4–8h" class="h-4 w-4" />
+              <span class="text-sm">4–8h</span>
+            </label>
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm sm:min-w-[140px]">
+              <input type="radio" name="sitting_hours" value="Powyżej 8h" class="h-4 w-4" />
+              <span class="text-sm">Powyżej 8h</span>
+            </label>
+          </div>
+          <p id="error-sitting" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+        </fieldset>
+
+        <fieldset class="mb-8">
+          <legend class="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+            <i class="fa-solid fa-gauge-high text-accent" aria-hidden="true"></i>
+            2. Jak oceniasz swój poziom stresu?
+          </legend>
+          <div class="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap" id="stress-group">
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="radio" name="stress_level" value="Niski" required class="h-4 w-4" />
+              <span class="text-sm">Niski</span>
+            </label>
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="radio" name="stress_level" value="Średni" class="h-4 w-4" />
+              <span class="text-sm">Średni</span>
+            </label>
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="radio" name="stress_level" value="Wysoki" class="h-4 w-4" />
+              <span class="text-sm">Wysoki</span>
+            </label>
+          </div>
+          <p id="error-stress" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+        </fieldset>
+
+        <fieldset>
+          <legend class="mb-3 flex items-center gap-2 text-sm font-medium text-ink">
+            <i class="fa-solid fa-moon text-accent" aria-hidden="true"></i>
+            3. Czy masz problemy ze snem?
+          </legend>
+          <div class="flex flex-col gap-2.5 sm:flex-row" id="sleep-group">
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="radio" name="sleep_issues" value="Tak" required class="h-4 w-4" />
+              <span class="text-sm">Tak</span>
+            </label>
+            <label class="option-card flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-sand/40 bg-cream/50 px-4 py-3 transition-all duration-200 hover:border-accent hover:shadow-sm">
+              <input type="radio" name="sleep_issues" value="Nie" class="h-4 w-4" />
+              <span class="text-sm">Nie</span>
+            </label>
+          </div>
+          <p id="error-sleep" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+        </fieldset>
+      </section>
+
+      <!-- ========== DODATKOWE INFORMACJE ========== -->
+      <section
+        class="rounded-2xl border border-sand/35 bg-card p-6 shadow-card sm:p-8 opacity-0 animate-fadeIn"
+        style="animation-delay: 0.3s; animation-fill-mode: forwards;"
+        aria-labelledby="section-additional"
+      >
+        <div class="mb-6 flex items-center gap-3 border-b border-sand/40 pb-4">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
+            <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+          </span>
+          <h2 id="section-additional" class="font-display text-2xl text-brown sm:text-3xl">Dodatkowe informacje</h2>
+        </div>
+        <label for="additional_info" class="sr-only">Dodatkowe informacje</label>
+        <textarea
+          id="additional_info"
+          name="additional_info"
+          rows="6"
+          placeholder="Czy jest coś, co powinnam wiedzieć..."
+          class="min-h-[140px] w-full resize-y rounded-xl border border-sand/50 bg-white px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+        ></textarea>
+      </section>
+
+      <!-- ========== OŚWIADCZENIE ========== -->
+      <section
+        class="rounded-2xl border border-sand/35 bg-card p-6 shadow-card sm:p-8 opacity-0 animate-fadeIn"
+        style="animation-delay: 0.4s; animation-fill-mode: forwards;"
+        aria-labelledby="section-declaration"
+      >
+        <div class="mb-4 flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 text-accent">
+            <i class="fa-solid fa-file-signature" aria-hidden="true"></i>
+          </span>
+          <h2 id="section-declaration" class="font-display text-xl text-brown sm:text-2xl">Oświadczenie</h2>
+        </div>
+
+        <p class="rounded-xl bg-cream/80 px-4 py-3 text-sm leading-relaxed text-ink/85">
+          Oświadczam, że podane informacje są zgodne z prawdą i biorę pełną odpowiedzialność za udział w treningach.
+        </p>
+
+        <label class="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-transparent px-1 py-1 transition hover:border-sand/40">
+          <input type="checkbox" id="declaration" name="declaration" required class="mt-1 h-4 w-4 shrink-0" />
+          <span class="text-sm text-ink/80">Akceptuję powyższe oświadczenie</span>
+        </label>
+        <p id="error-declaration" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+
+        <div class="mt-6 grid gap-5 sm:grid-cols-2">
+          <div>
+            <label for="signature" class="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
+              <i class="fa-solid fa-signature text-accent" aria-hidden="true"></i> Podpis:
+            </label>
+            <input
+              type="text"
+              id="signature"
+              name="signature"
+              required
+              placeholder="_______________"
+              class="w-full rounded-xl border border-sand/50 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+            <p id="error-signature" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+          </div>
+          <div>
+            <label for="form_date" class="mb-1.5 flex items-center gap-2 text-sm font-medium text-ink">
+              <i class="fa-regular fa-calendar text-accent" aria-hidden="true"></i> Data:
+            </label>
+            <input
+              type="date"
+              id="form_date"
+              name="form_date"
+              required
+              class="w-full rounded-xl border border-sand/50 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+            <p id="error-date" class="mt-2 hidden text-sm text-amber-800" role="alert"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PRZYCISK WYSYŁKI ========== -->
+      <div class="pt-2 opacity-0 animate-fadeIn" style="animation-delay: 0.5s; animation-fill-mode: forwards;">
+        <button
+          type="submit"
+          id="submit-btn"
+          class="flex w-full items-center justify-center gap-3 rounded-2xl bg-accent px-8 py-4 text-lg font-semibold tracking-wide text-white shadow-lift transition-all duration-200 hover:bg-brown hover:shadow-lg hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-cream disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:scale-100"
+        >
+          <span id="btn-text" class="flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+            Wyślij formularz
+          </span>
+          <span id="btn-loader" class="hidden items-center gap-2">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            Wysyłanie…
+          </span>
+        </button>
+      </div>
+
+    </form>
+
+    <footer class="mt-10 pb-6 text-center text-xs text-ink/40">
+      &copy; Studio treningowe / personalne
+    </footer>
+  </div>
+
+  <!-- ========== MODAL SUKCESU ========== -->
+  <div
+    id="success-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+    aria-hidden="true"
+  >
+    <div id="modal-backdrop" class="absolute inset-0 bg-ink/40 backdrop-blur-sm transition-opacity"></div>
+    <div class="modal-panel relative w-full max-w-md rounded-2xl border border-sand/40 bg-card p-8 text-center shadow-card">
+      <div class="text-5xl" aria-hidden="true">🎉</div>
+      <h3 id="modal-title" class="mt-4 font-display text-2xl text-brown">Dziękujemy!</h3>
+      <p class="mt-2 text-sm leading-relaxed text-ink/75">
+        Formularz został pomyślnie wysłany. Wkrótce się z Tobą skontaktujemy.
+      </p>
+      <button
+        type="button"
+        id="modal-close"
+        class="mt-8 w-full rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-brown hover:shadow-md focus:outline-none focus:ring-2 focus:ring-accent/40"
+      >
+        Zamknij
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    // =============================================================================
+    // --- Konfiguracja EmailJS ---
+    // Szablon template_kqul7ee — nazwy params 1:1:
+    // cele_treningowe, efekty_3m, wazne_w_treningach, godziny_siedzace,
+    // poziom_stresu, problemy_sen, dodatkowe_info, podpis, data
+    // =============================================================================
+    const EMAILJS_PUBLIC_KEY = 'oob0grz5mGL4Gv3EX';
+    const EMAILJS_SERVICE_ID = 'service_u3gorvm';
+    const EMAILJS_TEMPLATE_ID = 'template_kqul7ee';
+
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+    // =============================================================================
+    // --- Referencje DOM ---
+    // =============================================================================
+    const form = document.getElementById('registration-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnLoader = document.getElementById('btn-loader');
+    const errorMessage = document.getElementById('error-message');
+    const errorMessageText = document.getElementById('error-message-text');
+    const successModal = document.getElementById('success-modal');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalClose = document.getElementById('modal-close');
+    const otherCheckbox = document.getElementById('goal-other-checkbox');
+    const otherWrapper = document.getElementById('other-goal-wrapper');
+    const otherInput = document.getElementById('inne_text');
+
+    // Lista ID komunikatów błędów walidacji (do czyszczenia)
+    const ERROR_IDS = [
+      'error-main-goals', 'error-goals-3months', 'error-priorities',
+      'error-sitting', 'error-stress', 'error-sleep',
+      'error-declaration', 'error-signature', 'error-date',
+    ];
+
+    // =============================================================================
+    // --- Pomocnicze: odczyt wartości formularza ---
+    // =============================================================================
+
+    /** Zwraca tablicę wartości zaznaczonych checkboxów o podanej nazwie. */
+    function getCheckedValues(name) {
+      return Array.from(form.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => el.value);
+    }
+
+    /** Zwraca wartość zaznaczonego radio w grupie lub pusty string. */
+    function getRadioValue(name) {
+      const el = form.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : '';
+    }
+
+    // =============================================================================
+    // --- Walidacja: komunikaty błędów ---
+    // =============================================================================
+
+    function showFieldError(errorId, message, targets = []) {
+      const el = document.getElementById(errorId);
+      if (el) {
+        el.textContent = message;
+        el.classList.remove('hidden');
+      }
+      targets.forEach((t) => t && t.classList.add('field-error'));
+    }
+
+    function hideFieldError(errorId, targets = []) {
+      const el = document.getElementById(errorId);
+      if (el) {
+        el.textContent = '';
+        el.classList.add('hidden');
+      }
+      targets.forEach((t) => t && t.classList.remove('field-error'));
+    }
+
+    /** Czyści wszystkie komunikaty walidacji i banner błędu EmailJS. */
+    function clearAllErrors() {
+      ERROR_IDS.forEach((id) => hideFieldError(id));
+      form.querySelectorAll('.field-error').forEach((el) => el.classList.remove('field-error'));
+      errorMessage.classList.add('hidden');
+    }
+
+    /**
+     * Waliduje wymagane pola przed wysyłką.
+     * @returns {boolean} true gdy formularz poprawny
+     */
+    function validateForm() {
+      clearAllErrors();
+      let valid = true;
+      let firstError = null;
+
+      const mainGoals = getCheckedValues('main_goals');
+      const goalsGroup = document.getElementById('main-goals-group');
+      if (mainGoals.length === 0) {
+        showFieldError('error-main-goals', 'Wybierz co najmniej jeden cel treningowy.', [goalsGroup]);
+        valid = false;
+        firstError = firstError || goalsGroup;
+      }
+
+      if (mainGoals.includes('Inne') && !otherInput.value.trim()) {
+        showFieldError('error-main-goals', 'Wypełnij pole „Inne”, jeśli je zaznaczyłaś/zaznaczyłeś.', [otherInput]);
+        valid = false;
+        firstError = firstError || otherInput;
+      }
+
+      const goals3months = document.getElementById('goals_3months');
+      if (!goals3months.value.trim()) {
+        showFieldError('error-goals-3months', 'To pole jest wymagane.', [goals3months]);
+        valid = false;
+        firstError = firstError || goals3months;
+      }
+
+      const priorities = getCheckedValues('training_priorities');
+      const prioritiesGroup = document.getElementById('priorities-group');
+      if (priorities.length === 0) {
+        showFieldError('error-priorities', 'Wybierz co najmniej jedną opcję.', [prioritiesGroup]);
+        valid = false;
+        firstError = firstError || prioritiesGroup;
+      }
+
+      const sittingGroup = document.getElementById('sitting-group');
+      if (!getRadioValue('sitting_hours')) {
+        showFieldError('error-sitting', 'Wybierz jedną opcję.', [sittingGroup]);
+        valid = false;
+        firstError = firstError || sittingGroup;
+      }
+
+      const stressGroup = document.getElementById('stress-group');
+      if (!getRadioValue('stress_level')) {
+        showFieldError('error-stress', 'Wybierz jedną opcję.', [stressGroup]);
+        valid = false;
+        firstError = firstError || stressGroup;
+      }
+
+      const sleepGroup = document.getElementById('sleep-group');
+      if (!getRadioValue('sleep_issues')) {
+        showFieldError('error-sleep', 'Wybierz jedną opcję.', [sleepGroup]);
+        valid = false;
+        firstError = firstError || sleepGroup;
+      }
+
+      const declaration = document.getElementById('declaration');
+      if (!declaration.checked) {
+        showFieldError('error-declaration', 'Musisz zaakceptować oświadczenie.', [declaration]);
+        valid = false;
+        firstError = firstError || declaration;
+      }
+
+      const signature = document.getElementById('signature');
+      if (!signature.value.trim()) {
+        showFieldError('error-signature', 'Podpis jest wymagany.', [signature]);
+        valid = false;
+        firstError = firstError || signature;
+      }
+
+      const formDate = document.getElementById('form_date');
+      if (!formDate.value) {
+        showFieldError('error-date', 'Data jest wymagana.', [formDate]);
+        valid = false;
+        firstError = firstError || formDate;
+      }
+
+      if (!valid && firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      return valid;
+    }
+
+    // =============================================================================
+    // --- EmailJS: budowanie parametrów szablonu (nazwy 1:1 z szablonem) ---
+    // =============================================================================
+
+    /** Formatuje datę z input[type=date] na czytelny tekst PL. */
+    function formatDatePL(isoDate) {
+      if (!isoDate) return '';
+      const [y, m, d] = isoDate.split('-');
+      return `${d}.${m}.${y}`;
+    }
+
+    /** Składa listę celów treningowych (w tym pole „Inne”). */
+    function buildCeleTreningowe() {
+      const goals = getCheckedValues('main_goals').filter((v) => v !== 'Inne');
+      const parts = [...goals];
+      if (otherCheckbox.checked && otherInput.value.trim()) {
+        parts.push(`Inne: ${otherInput.value.trim()}`);
+      } else if (otherCheckbox.checked) {
+        parts.push('Inne');
+      }
+      return parts.join(', ') || '—';
+    }
+
+    function buildTemplateParams() {
+      return {
+        cele_treningowe: buildCeleTreningowe(),
+        efekty_3m: document.getElementById('goals_3months').value.trim(),
+        wazne_w_treningach: getCheckedValues('training_priorities').join(', ') || '—',
+        godziny_siedzace: getRadioValue('sitting_hours'),
+        poziom_stresu: getRadioValue('stress_level'),
+        problemy_sen: getRadioValue('sleep_issues'),
+        dodatkowe_info: document.getElementById('additional_info').value.trim() || '—',
+        podpis: document.getElementById('signature').value.trim(),
+        data: formatDatePL(document.getElementById('form_date').value),
+      };
+    }
+
+    /**
+     * Zwraca czytelny komunikat błędu z odpowiedzi EmailJS / sieci.
+     * @param {unknown} err
+     * @returns {string}
+     */
+    function getEmailErrorMessage(err) {
+      if (!err) {
+        return 'Nie udało się wysłać formularza. Spróbuj ponownie za chwilę.';
+      }
+      if (typeof err === 'object' && err !== null) {
+        const e = /** @type {{ text?: string; status?: number; message?: string }} */ (err);
+        if (e.text) {
+          return e.status
+            ? `Błąd ${e.status}: ${e.text}`
+            : e.text;
+        }
+        if (e.message) return e.message;
+      }
+      if (err instanceof Error) return err.message;
+      return 'Nie udało się wysłać formularza. Sprawdź połączenie z internetem i spróbuj ponownie.';
+    }
+
+    /** Pokazuje banner błędu nad formularzem. */
+    function showSubmitError(message) {
+      errorMessageText.textContent = message;
+      errorMessage.classList.remove('hidden');
+      errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // =============================================================================
+    // --- UI: loader na przycisku ---
+    // =============================================================================
+
+    function setLoading(isLoading) {
+      submitBtn.disabled = isLoading;
+      btnText.classList.toggle('hidden', isLoading);
+      btnLoader.classList.toggle('hidden', !isLoading);
+      btnLoader.classList.toggle('flex', isLoading);
+    }
+
+    // =============================================================================
+    // --- Modal sukcesu ---
+    // =============================================================================
+
+    function openSuccessModal() {
+      successModal.classList.remove('hidden');
+      successModal.classList.add('flex');
+      successModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+      modalClose.focus();
+    }
+
+    function closeSuccessModal() {
+      successModal.classList.add('hidden');
+      successModal.classList.remove('flex');
+      successModal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+    }
+
+    modalClose.addEventListener('click', closeSuccessModal);
+    modalBackdrop.addEventListener('click', closeSuccessModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !successModal.classList.contains('hidden')) {
+        closeSuccessModal();
+      }
+    });
+
+    // =============================================================================
+    // --- Pole „Inne”: pokazuj / ukrywaj input ---
+    // =============================================================================
+
+    otherCheckbox.addEventListener('change', () => {
+      if (otherCheckbox.checked) {
+        otherWrapper.classList.remove('hidden');
+        otherInput.focus();
+      } else {
+        otherWrapper.classList.add('hidden');
+        otherInput.value = '';
+        otherInput.classList.remove('field-error');
+      }
+    });
+
+    // =============================================================================
+    // --- Wysyłka formularza ---
+    // =============================================================================
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!validateForm()) return;
+
+      setLoading(true);
+      errorMessage.classList.add('hidden');
+
+      const params = buildTemplateParams();
+      console.log('EmailJS — wysyłane params:', params);
+
+      try {
+        const response = await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          params
+        );
+        console.log('EmailJS — sukces:', response);
+
+        form.reset();
+        otherWrapper.classList.add('hidden');
+        clearAllErrors();
+        openSuccessModal();
+      } catch (err) {
+        const userMessage = getEmailErrorMessage(err);
+        console.error('EmailJS — błąd wysyłki:', err);
+        console.error('EmailJS — komunikat dla użytkownika:', userMessage);
+        showSubmitError(userMessage);
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+
+  <!--
+  EmailJS: service_u3gorvm / template_kqul7ee / Public Key w skrypcie
+  Zmienne szablonu (1:1): cele_treningowe, efekty_3m, wazne_w_treningach,
+  godziny_siedzace, poziom_stresu, problemy_sen, dodatkowe_info, podpis, data
+  -->
+
+</body>
+</html>
